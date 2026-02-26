@@ -1,0 +1,2600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Performance Analytics - AI Crypto Trading Bot</title>
+    <!-- Bootstrap 5 CSS with Bootswatch Yeti Theme -->
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/yeti/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <!-- Shared Header CSS -->
+    <link rel="stylesheet" href="shared-header.css">
+    <style>
+        /* Enhanced Performance Dashboard Styles */
+        :root {
+            --primary-color: #008cba;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --gradient-primary: linear-gradient(135deg, #008cba 0%, #0056b3 100%);
+            --gradient-success: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            --gradient-danger: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+            --gradient-warning: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 8px rgba(0,0,0,0.15);
+            --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Enhanced Card Styles */
+        .performance-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            background: white;
+        }
+
+        .performance-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .performance-card .card-header {
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 1rem 1.25rem 0.75rem;
+        }
+
+        /* Metric Cards */
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .metric-card.success::before { background: var(--gradient-success); }
+        .metric-card.danger::before { background: var(--gradient-danger); }
+        .metric-card.warning::before { background: var(--gradient-warning); }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-change {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .metric-change.positive { color: var(--success-color); }
+        .metric-change.negative { color: var(--danger-color); }
+        .metric-change.neutral { color: #6c757d; }
+
+        /* Chart Containers */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 1rem 0;
+        }
+
+        .chart-container.large {
+            height: 500px;
+        }
+
+        .chart-container.small {
+            height: 300px;
+        }
+
+        /* Time Range Selector */
+        .time-range-selector {
+            background: white;
+            border-radius: 8px;
+            padding: 0.5rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1rem;
+        }
+
+        .time-range-btn {
+            border: none;
+            background: transparent;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: #6c757d;
+        }
+
+        .time-range-btn:hover {
+            background: #f8f9fa;
+            color: var(--primary-color);
+        }
+
+        .time-range-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Performance Summary */
+        .performance-summary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .performance-summary::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .performance-summary h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .performance-summary .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+
+
+
+
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .metric-value {
+                font-size: 1.8rem;
+            }
+            
+            .performance-summary h2 {
+                font-size: 2rem;
+            }
+            
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: #6c757d;
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.online {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-badge.offline {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger-color);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Phase 3: Advanced Performance Management Styles */
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            background: rgba(0, 140, 186, 0.05);
+            border: 1px solid rgba(0, 140, 186, 0.1);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .goal-item {
+            padding: 0.75rem;
+            border-radius: 6px;
+            background: rgba(40, 167, 69, 0.05);
+            border-left: 4px solid var(--success-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .goal-item.not-achieved {
+            background: rgba(220, 53, 69, 0.05);
+            border-left-color: var(--danger-color);
+        }
+
+        .goal-progress {
+            height: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .goal-progress-bar {
+            height: 100%;
+            background: var(--success-color);
+            transition: width 0.3s ease;
+        }
+
+        .goal-progress-bar.not-achieved {
+            background: var(--danger-color);
+        }
+
+        .benchmark-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 6px;
+            background: rgba(0, 140, 186, 0.05);
+            margin-bottom: 0.5rem;
+        }
+
+        .benchmark-outperforming {
+            background: rgba(40, 167, 69, 0.05);
+            border-left: 3px solid var(--success-color);
+        }
+
+        .benchmark-underperforming {
+            background: rgba(220, 53, 69, 0.05);
+            border-left: 3px solid var(--danger-color);
+        }
+
+        .insight-item {
+            padding: 0.75rem;
+            border-radius: 6px;
+            background: rgba(255, 193, 7, 0.05);
+            border-left: 3px solid var(--warning-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .grade-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .grade-a { background: rgba(40, 167, 69, 0.1); color: var(--success-color); }
+        .grade-b { background: rgba(0, 140, 186, 0.1); color: var(--primary-color); }
+        .grade-c { background: rgba(255, 193, 7, 0.1); color: var(--warning-color); }
+        .grade-d { background: rgba(255, 108, 55, 0.1); color: #ff6c37; }
+        .grade-f { background: rgba(220, 53, 69, 0.1); color: var(--danger-color); }
+
+        .period-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Shared Header -->
+    <div id="shared-header"></div>
+
+    <div class="container-fluid mt-4">
+
+        <!-- Performance Summary Section -->
+        <div class="performance-summary">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 id="total-return-display">+0.00%</h2>
+                    <p class="subtitle">Total Portfolio Return Since Inception</p>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                <div>
+                                    <div class="fw-bold">Days Active</div>
+                                    <div id="days-active">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exchange-alt me-2"></i>
+                                <div>
+                                    <div class="fw-bold">Total Trades</div>
+                                    <div id="total-trades">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-trophy me-2"></i>
+                                <div>
+                                    <div class="fw-bold">Win Rate</div>
+                                    <div id="overall-win-rate">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="mb-3">
+                        <div class="fw-bold mb-1">Current Portfolio Value</div>
+                        <div style="font-size: 1.8rem; font-weight: 700;" id="current-value">€0.00</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold mb-1">Initial Investment</div>
+                        <div style="font-size: 1.2rem;" id="initial-value">€0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Performance Metrics -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card">
+                    <div class="metric-value" id="daily-return">+0.00%</div>
+                    <div class="metric-label">Today's Return</div>
+                    <div class="metric-change positive" id="daily-change">+€0.00</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card success">
+                    <div class="metric-value" id="weekly-return">+0.00%</div>
+                    <div class="metric-label">7-Day Return</div>
+                    <div class="metric-change positive" id="weekly-change">+€0.00</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card warning">
+                    <div class="metric-value" id="monthly-return">+0.00%</div>
+                    <div class="metric-label">30-Day Return</div>
+                    <div class="metric-change positive" id="monthly-change">+€0.00</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card danger">
+                    <div class="metric-value" id="max-drawdown">-0.00%</div>
+                    <div class="metric-label">Max Drawdown</div>
+                    <div class="metric-change negative" id="drawdown-date">Never</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Tracking Metrics (NEW) -->
+        <div class="performance-metrics-section">
+            <div class="row g-4 mb-4">
+                <div class="col-12">
+                    <h5 class="text-muted mb-3">
+                        <i class="fas fa-chart-line me-2"></i>Advanced Performance Analytics
+                    </h5>
+                </div>
+            </div>
+            <div class="row g-4 mb-4">
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="metric-card">
+                        <div class="metric-value" id="total-return-value">+0.00%</div>
+                        <div class="metric-label">Total Return</div>
+                        <div class="metric-change" id="total-return-period">Since inception</div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="metric-card success">
+                        <div class="metric-value" id="current-value">€0.00</div>
+                        <div class="metric-label">Current Value</div>
+                        <div class="metric-change" id="current-value-change">Portfolio</div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="metric-card warning">
+                        <div class="metric-value" id="sharpe-ratio">0.00</div>
+                        <div class="metric-label">Sharpe Ratio</div>
+                        <div class="metric-change" id="sharpe-info">Risk-adjusted</div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="metric-card danger">
+                        <div class="metric-value" id="max-drawdown">-0.00%</div>
+                        <div class="metric-label">Max Drawdown</div>
+                        <div class="metric-change" id="drawdown-info">Peak to trough</div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="metric-card">
+                        <div class="metric-value" id="volatility">0.0%</div>
+                        <div class="metric-label">Volatility</div>
+                        <div class="metric-change" id="volatility-info">Annualized</div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="metric-card success">
+                        <div class="metric-value" id="annualized-return">+0.0%</div>
+                        <div class="metric-label">Annualized Return</div>
+                        <div class="metric-change" id="annualized-info">CAGR</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Range Selector -->
+        <div class="time-range-selector">
+            <div class="d-flex justify-content-center gap-2">
+                <button class="time-range-btn active" data-range="24h">24H</button>
+                <button class="time-range-btn" data-range="7d">7D</button>
+                <button class="time-range-btn" data-range="30d">30D</button>
+                <button class="time-range-btn" data-range="90d">90D</button>
+                <button class="time-range-btn" data-range="1y">1Y</button>
+                <button class="time-range-btn" data-range="all">ALL</button>
+            </div>
+        </div>
+
+        <!-- Main Performance Chart -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="performance-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-area me-2"></i>Portfolio Value Over Time
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container large">
+                            <canvas id="portfolio-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Charts Row -->
+        <div class="row g-4 mb-4">
+            <!-- Returns Distribution -->
+            <div class="col-lg-6">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Daily Returns Distribution
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="returns-distribution-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Asset Allocation -->
+            <div class="col-lg-6">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-pie-chart me-2"></i>Current Asset Allocation
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="allocation-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Activity and Performance Metrics -->
+        <div class="row g-4 mb-4">
+            <!-- Trading Activity -->
+            <div class="col-lg-8">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-exchange-alt me-2"></i>Trading Activity Timeline
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="trading-activity-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Performance Metrics -->
+            <div class="col-lg-4">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-tachometer-alt me-2"></i>Performance Metrics
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Sharpe Ratio</span>
+                                    <strong id="sharpe-ratio">0.00</strong>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Volatility (30d)</span>
+                                    <strong id="volatility-30d">0.00%</strong>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Best Day</span>
+                                    <strong class="text-success" id="best-day">+0.00%</strong>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Worst Day</span>
+                                    <strong class="text-danger" id="worst-day">-0.00%</strong>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Avg Daily Return</span>
+                                    <strong id="avg-daily-return">+0.00%</strong>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Profitable Days</span>
+                                    <strong id="profitable-days">0%</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Detailed Analysis Tables -->
+        <div class="row g-4 mb-4">
+            <!-- Recent Trades Analysis -->
+            <div class="col-lg-8">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-history me-2"></i>Recent Trading Performance
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Asset</th>
+                                        <th>Action</th>
+                                        <th>Amount</th>
+                                        <th>Confidence</th>
+                                        <th>P&L</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-trades-table">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">Loading trades...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI Performance Analysis -->
+            <div class="col-lg-4">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-brain me-2"></i>AI Decision Analysis
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Avg Confidence</span>
+                                    <strong id="avg-confidence">0%</strong>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">High Confidence Trades</span>
+                                    <strong id="high-confidence-trades">0</strong>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Success Rate (>70%)</span>
+                                    <strong id="high-confidence-success">0%</strong>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">BUY Decisions</span>
+                                    <strong class="text-success" id="buy-decisions">0</strong>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">SELL Decisions</span>
+                                    <strong class="text-danger" id="sell-decisions">0</strong>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">HOLD Decisions</span>
+                                    <strong class="text-warning" id="hold-decisions">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Long-term Analysis -->
+        <div class="row g-4 mb-4">
+            <!-- Monthly Performance -->
+            <div class="col-lg-6">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-calendar-check me-2"></i>Monthly Performance Breakdown
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="monthly-performance-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Risk Analysis -->
+            <div class="col-lg-6">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-shield-alt me-2"></i>Risk Analysis
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="risk-analysis-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Health and Uptime -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-heartbeat me-2"></i>System Health & Uptime (365-Day View)
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-lg-3">
+                                <div class="text-center">
+                                    <div class="metric-value text-success" id="uptime-percentage">99.9%</div>
+                                    <div class="metric-label">Uptime</div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="text-center">
+                                    <div class="metric-value" id="total-uptime">0d 0h 0m</div>
+                                    <div class="metric-label">Total Uptime</div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="text-center">
+                                    <div class="metric-value text-warning" id="restart-count">0</div>
+                                    <div class="metric-label">Restarts</div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="text-center">
+                                    <div class="metric-value text-info" id="decisions-made">0</div>
+                                    <div class="metric-label">Decisions Made</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 3: Advanced Performance Management Features -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <h5 class="text-muted mb-3">
+                    <i class="fas fa-cogs me-2"></i>Performance Management
+                </h5>
+            </div>
+        </div>
+
+        <!-- Performance Goals Section -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="performance-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="fas fa-bullseye me-2"></i>Performance Goals
+                        </h6>
+                        <span class="badge bg-primary" id="goals-count">0 Active</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="goals-status">
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-target fa-2x mb-2"></i>
+                                <p>No performance goals set</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Benchmark Comparison -->
+            <div class="col-lg-6">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>Benchmark Comparison
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="benchmark-comparison">
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-balance-scale fa-2x mb-2"></i>
+                                <p>Loading benchmark data...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Insights and Grades -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-lightbulb me-2"></i>Performance Insights
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="performance-insights">
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-brain fa-2x mb-2"></i>
+                                <p>Generating insights...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Performance Grades -->
+            <div class="col-lg-4">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-graduation-cap me-2"></i>Performance Grades
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="performance-grades">
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-medal fa-2x mb-2"></i>
+                                <p>Calculating grades...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Summary -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-tachometer-alt me-2"></i>Quick Performance Summary
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3" id="quick-stats">
+                            <div class="col-lg-3 col-md-6">
+                                <div class="stat-item">
+                                    <div class="stat-label">Best Period</div>
+                                    <div class="stat-value" id="best-period">-</div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="stat-item">
+                                    <div class="stat-label">Worst Period</div>
+                                    <div class="stat-value" id="worst-period">-</div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="stat-item">
+                                    <div class="stat-label">Avg Return</div>
+                                    <div class="stat-value" id="avg-return">-</div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="stat-item">
+                                    <div class="stat-label">Avg Sharpe</div>
+                                    <div class="stat-value" id="avg-sharpe">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Shared Header JS -->
+    <script src="shared-header.js"></script>
+    <script>
+        // Load shared header and initialize
+        async function loadSharedHeader() {
+            try {
+                console.log('Loading shared header...');
+                const response = await fetch('shared-header.html');
+                if (!response.ok) throw new Error('Failed to load header');
+                const html = await response.text();
+                document.getElementById('shared-header').innerHTML = html;
+                
+                console.log('Header HTML loaded, initializing...');
+                // Small delay to ensure DOM is ready
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Initialize header functionality
+                if (typeof initializeHeader === 'function') {
+                    console.log('Calling initializeHeader...');
+                    initializeHeader('performance');
+                } else {
+                    console.error('initializeHeader function not found!');
+                }
+            } catch (error) {
+                console.error('Error loading header:', error);
+                // Fallback: show a basic header
+                document.getElementById('shared-header').innerHTML = `
+                    <nav class="navbar navbar-expand-lg">
+                        <div class="container-fluid">
+                            <a class="navbar-brand" href="https://github.com/schmidb/AI-crypto-bot" target="_blank">
+                                <i class="fas fa-robot me-2"></i>
+                                AI Crypto Bot
+                            </a>
+                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" 
+                                    aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                            <div class="collapse navbar-collapse" id="navbarContent">
+                                <div class="navbar-nav me-auto">
+                                    <a class="nav-link" href="index.html">Dashboard</a>
+                                    <a class="nav-link active" href="performance.html">Performance</a>
+                                    <a class="nav-link" href="analysis.html">Analysis</a>
+                                    <a class="nav-link" href="logs.html">Logs</a>
+                                    <a class="nav-link" href="config.html">Configuration</a>
+                                </div>
+                                <div class="navbar-nav ms-auto">
+                                    <span class="navbar-text me-3" id="live-clock">
+                                        <i class="far fa-clock me-1"></i>
+                                        Loading...
+                                    </span>
+                                    <span class="navbar-text" id="bot-uptime">
+                                        <i class="fas fa-history me-1"></i>
+                                        Uptime: Loading...
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                `;
+                // Initialize even with fallback
+                console.log('Using fallback header, initializing...');
+                if (typeof initializeHeader === 'function') {
+                    initializeHeader('performance');
+                } else {
+                    console.error('initializeHeader function not found in fallback!');
+                }
+            }
+        }
+        
+        // Load header when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadSharedHeader);
+        } else {
+            loadSharedHeader();
+        }
+    </script>
+    
+    <script>
+        // Safe number formatting functions
+        function safeToFixed(value, decimals = 2) {
+            const num = parseFloat(value);
+            return isNaN(num) ? '0.00' : num.toFixed(decimals);
+        }
+        
+        function safeNumber(value, defaultValue = 0) {
+            const num = parseFloat(value);
+            return isNaN(num) ? defaultValue : num;
+        }
+        
+        function formatCurrency(value) {
+            return '€' + safeToFixed(value, 2);
+        }
+        
+        function formatPercentage(value, decimals = 2) {
+            const num = safeNumber(value);
+            return (num >= 0 ? '+' : '') + safeToFixed(num, decimals) + '%';
+        }
+
+        // Global variables for charts and data
+        let portfolioChart = null;
+        let returnsDistributionChart = null;
+        let allocationChart = null;
+        let tradingActivityChart = null;
+        let isCreatingCharts = false; // Flag to prevent concurrent chart creation
+        
+        // Chart cleanup utility function
+        function destroyChart(chartVariable) {
+            if (chartVariable && typeof chartVariable.destroy === 'function') {
+                try {
+                    chartVariable.destroy();
+                } catch (e) {
+                    console.warn('Error destroying chart:', e);
+                }
+            }
+            return null;
+        }
+        
+        // Enhanced chart cleanup for specific canvas elements
+        function destroyChartByCanvasId(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (canvas) {
+                const existingChart = Chart.getChart(canvas);
+                if (existingChart) {
+                    try {
+                        existingChart.destroy();
+                    } catch (e) {
+                        console.warn(`Error destroying chart on canvas ${canvasId}:`, e);
+                    }
+                }
+            }
+        }
+        
+        // Destroy all charts
+        function destroyAllCharts() {
+            // Destroy by variable reference
+            portfolioChart = destroyChart(portfolioChart);
+            returnsDistributionChart = destroyChart(returnsDistributionChart);
+            allocationChart = destroyChart(allocationChart);
+            tradingActivityChart = destroyChart(tradingActivityChart);
+            
+            // Also destroy by canvas ID as backup
+            destroyChartByCanvasId('portfolio-chart');
+            destroyChartByCanvasId('returns-distribution-chart');
+            destroyChartByCanvasId('allocation-chart');
+            destroyChartByCanvasId('trading-activity-chart');
+        }
+        let monthlyPerformanceChart = null;
+        let riskAnalysisChart = null;
+        
+        let currentTimeRange = '24h';
+        let portfolioData = [];
+        let tradesData = [];
+        let performanceTrackingData = null;  // NEW: Store performance tracking data
+        
+        // Chart.js default configuration
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.color = '#6c757d';
+
+        // Utility function to load data
+        async function loadData(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                if (url.endsWith('.txt') || url.endsWith('.csv')) {
+                    return await response.text();
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error loading data from', url, ':', error);
+                return null;
+            }
+        }
+
+        // Parse CSV data
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].split(',');
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index];
+                });
+                data.push(row);
+            }
+            
+            return data;
+        }
+
+        // Calculate performance metrics
+        function calculatePerformanceMetrics(data) {
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                return {
+                    totalReturn: 0,
+                    avgDailyReturn: 0,
+                    volatility: 0,
+                    maxDrawdown: 0,
+                    sharpeRatio: 0,
+                    bestDay: 0,
+                    worstDay: 0,
+                    profitableDays: 0
+                };
+            }
+            
+            const values = data.map(d => {
+                const value = parseFloat(d.portfolio_value_usd || d.portfolio_value_eur || 0);
+                return isNaN(value) ? 0 : value;
+            }).filter(v => v > 0); // Filter out zero/invalid values
+            
+            if (values.length < 2) {
+                return {
+                    totalReturn: 0,
+                    avgDailyReturn: 0,
+                    volatility: 0,
+                    maxDrawdown: 0,
+                    sharpeRatio: 0,
+                    bestDay: 0,
+                    worstDay: 0,
+                    profitableDays: 0
+                };
+            }
+            
+            const returns = [];
+            
+            for (let i = 1; i < values.length; i++) {
+                if (values[i-1] > 0) {
+                    const returnValue = (values[i] - values[i-1]) / values[i-1];
+                    if (!isNaN(returnValue) && isFinite(returnValue)) {
+                        returns.push(returnValue);
+                    }
+                }
+            }
+            
+            if (returns.length === 0) {
+                return {
+                    totalReturn: 0,
+                    avgDailyReturn: 0,
+                    volatility: 0,
+                    maxDrawdown: 0,
+                    sharpeRatio: 0,
+                    bestDay: 0,
+                    worstDay: 0,
+                    profitableDays: 0
+                };
+            }
+            
+            const totalReturn = values.length > 1 ? (values[values.length-1] - values[0]) / values[0] : 0;
+            const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
+            const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / (returns.length - 1);
+            const volatility = Math.sqrt(Math.max(0, variance)); // Ensure non-negative
+            
+            // Calculate drawdown
+            let maxValue = values[0];
+            let maxDrawdown = 0;
+            
+            for (let value of values) {
+                if (value > maxValue) {
+                    maxValue = value;
+                }
+                const drawdown = maxValue > 0 ? (maxValue - value) / maxValue : 0;
+                if (drawdown > maxDrawdown) {
+                    maxDrawdown = drawdown;
+                }
+            }
+            
+            const bestDay = returns.length > 0 ? Math.max(...returns) : 0;
+            const worstDay = returns.length > 0 ? Math.min(...returns) : 0;
+            const profitableDays = returns.length > 0 ? returns.filter(r => r > 0).length / returns.length : 0;
+            
+            return {
+                totalReturn: (isNaN(totalReturn) ? 0 : totalReturn) * 100,
+                avgDailyReturn: (isNaN(avgReturn) ? 0 : avgReturn) * 100,
+                volatility: (isNaN(volatility) ? 0 : volatility) * 100,
+                maxDrawdown: (isNaN(maxDrawdown) ? 0 : maxDrawdown) * 100,
+                sharpeRatio: volatility > 0 ? avgReturn / volatility : 0,
+                bestDay: (isNaN(bestDay) ? 0 : bestDay) * 100,
+                worstDay: (isNaN(worstDay) ? 0 : worstDay) * 100,
+                profitableDays: (isNaN(profitableDays) ? 0 : profitableDays) * 100
+            };
+        }
+
+        // Performance chart update functions
+        function updatePortfolioValueChart(chartData) {
+            try {
+                const ctx = document.getElementById('portfolio-chart');
+                if (!ctx) {
+                    console.log('Portfolio chart canvas not found');
+                    return;
+                }
+                
+                // Destroy existing chart if it exists
+                portfolioChart = destroyChart(portfolioChart);
+                
+                // Create new chart
+                portfolioChart = new Chart(ctx, {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Portfolio Value Over Time'
+                            },
+                            legend: {
+                                display: true
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    displayFormats: {
+                                        hour: 'MMM dd HH:mm',
+                                        day: 'MMM dd',
+                                        week: 'MMM dd',
+                                        month: 'MMM yyyy'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Value (EUR)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatCurrency(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                console.log('Portfolio value chart updated');
+            } catch (error) {
+                console.error('Error updating portfolio value chart:', error);
+            }
+        }
+        
+        function updateReturnsChart(chartData) {
+            try {
+                const ctx = document.getElementById('returns-distribution-chart');
+                if (!ctx) {
+                    console.log('Returns chart canvas not found');
+                    return;
+                }
+                
+                // Destroy existing chart if it exists
+                if (window.returnsChart) {
+                    window.returnsChart.destroy();
+                }
+                
+                // Create new chart
+                window.returnsChart = new Chart(ctx, {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Daily Returns'
+                            },
+                            legend: {
+                                display: true
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    displayFormats: {
+                                        hour: 'MMM dd HH:mm',
+                                        day: 'MMM dd',
+                                        week: 'MMM dd',
+                                        month: 'MMM yyyy'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Returns (%)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return safeToFixed(value) + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                console.log('Returns chart updated');
+            } catch (error) {
+                console.error('Error updating returns chart:', error);
+            }
+        }
+        
+        function updateDrawdownChart(chartData) {
+            try {
+                const ctx = document.getElementById('risk-analysis-chart');
+                if (!ctx) {
+                    console.log('Drawdown chart canvas not found');
+                    return;
+                }
+                
+                // Destroy existing chart if it exists
+                if (window.drawdownChart) {
+                    window.drawdownChart.destroy();
+                }
+                
+                // Create new chart
+                window.drawdownChart = new Chart(ctx, {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Portfolio Drawdown'
+                            },
+                            legend: {
+                                display: true
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    displayFormats: {
+                                        hour: 'MMM dd HH:mm',
+                                        day: 'MMM dd',
+                                        week: 'MMM dd',
+                                        month: 'MMM yyyy'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Drawdown (%)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return safeToFixed(value) + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                console.log('Drawdown chart updated');
+            } catch (error) {
+                console.error('Error updating drawdown chart:', error);
+            }
+        }
+        
+        // Update period selector function
+        function updatePeriodSelector(periodData) {
+            try {
+                // This function can be used to update period selection UI
+                // For now, just log the available periods
+                console.log('Available performance periods:', Object.keys(periodData || {}));
+                
+                // You can add period selector UI updates here if needed
+                // For example, updating dropdown options or buttons
+                
+            } catch (error) {
+                console.error('Error updating period selector:', error);
+            }
+        }
+
+        // NEW: Update performance charts with tracking data
+        function updatePerformanceCharts(performanceData) {
+            try {
+                if (!performanceData || performanceData.error) {
+                    console.log('Performance tracking data not available:', performanceData?.error || 'No data');
+                    showPerformanceTrackingUnavailable();
+                    return;
+                }
+
+                console.log('Updating performance charts with tracking data');
+
+                // Update performance metrics cards
+                updatePerformanceMetricsCards(performanceData);
+
+                // Phase 3: Update advanced performance management features
+                updateAdvancedFeatures(performanceData.advanced_features);
+
+                // Update performance charts
+                if (performanceData.chart_data) {
+                    updatePortfolioValueChart(performanceData.chart_data.portfolio_value);
+                    updateReturnsChart(performanceData.chart_data.daily_returns);
+                    updateDrawdownChart(performanceData.chart_data.drawdown);
+                }
+
+                // Update period selector with performance data
+                updatePeriodSelector(performanceData.period_data);
+
+            } catch (error) {
+                console.error('Error updating performance charts:', error);
+                showPerformanceTrackingUnavailable();
+            }
+        }
+
+        // NEW: Update performance metrics cards
+        function updatePerformanceMetricsCards(performanceData) {
+            try {
+                const metrics = performanceData.metrics_summary;
+                if (!metrics || metrics.error) {
+                    console.log('Performance metrics not available');
+                    return;
+                }
+
+                // Update total return card
+                const totalReturnElement = document.getElementById('total-return-value');
+                if (totalReturnElement) {
+                    const totalReturn = metrics.total_return || 0;
+                    totalReturnElement.textContent = `${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`;
+                    totalReturnElement.className = `metric-value ${totalReturn >= 0 ? 'text-success' : 'text-danger'}`;
+                }
+
+                // Update current value card
+                const currentValueElement = document.getElementById('current-value');
+                if (currentValueElement) {
+                    currentValueElement.textContent = `€${(metrics.current_value || 0).toFixed(2)}`;
+                }
+
+                // Update Sharpe ratio card
+                const sharpeRatioElement = document.getElementById('sharpe-ratio');
+                if (sharpeRatioElement) {
+                    const sharpeRatio = metrics.sharpe_ratio || 0;
+                    sharpeRatioElement.textContent = sharpeRatio.toFixed(2);
+                    sharpeRatioElement.className = `metric-value ${sharpeRatio >= 1 ? 'text-success' : sharpeRatio >= 0 ? 'text-warning' : 'text-danger'}`;
+                }
+
+                // Update max drawdown card
+                const maxDrawdownElement = document.getElementById('max-drawdown');
+                if (maxDrawdownElement) {
+                    const maxDrawdown = metrics.max_drawdown || 0;
+                    maxDrawdownElement.textContent = `-${maxDrawdown.toFixed(2)}%`;
+                    maxDrawdownElement.className = `metric-value ${maxDrawdown <= 5 ? 'text-success' : maxDrawdown <= 15 ? 'text-warning' : 'text-danger'}`;
+                }
+
+                // Update volatility card
+                const volatilityElement = document.getElementById('volatility');
+                if (volatilityElement) {
+                    const volatility = (metrics.volatility || 0) * 100; // Convert to percentage
+                    volatilityElement.textContent = `${volatility.toFixed(1)}%`;
+                }
+
+                // Update annualized return card
+                const annualizedReturnElement = document.getElementById('annualized-return');
+                if (annualizedReturnElement) {
+                    const annualizedReturn = metrics.annualized_return || 0;
+                    annualizedReturnElement.textContent = `${annualizedReturn >= 0 ? '+' : ''}${annualizedReturn.toFixed(1)}%`;
+                    annualizedReturnElement.className = `metric-value ${annualizedReturn >= 0 ? 'text-success' : 'text-danger'}`;
+                }
+
+            } catch (error) {
+                console.error('Error updating performance metrics cards:', error);
+            }
+        }
+
+        // NEW: Show performance tracking unavailable message
+        function showPerformanceTrackingUnavailable() {
+            // Add a notice that performance tracking is not yet available
+            const performanceSection = document.querySelector('.performance-metrics-section');
+            if (performanceSection) {
+                performanceSection.innerHTML = `
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Performance Tracking</h5>
+                        <p><strong>Advanced performance tracking is not yet available.</strong> The system needs at least 2 portfolio snapshots to calculate performance metrics.</p>
+                        <p><strong>Note:</strong> Performance tracking will automatically start once the bot has been running and taking portfolio snapshots.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Update key metrics display
+        function updateKeyMetrics(portfolio, trades, portfolioHistory, performanceData = null) {
+            // Set default values
+            let currentValue = 0;
+            let initialValue = 0;
+            let totalReturn = 0;
+            
+            if (portfolio) {
+                currentValue = safeNumber(portfolio.portfolio_value_eur);
+                initialValue = safeNumber(portfolio.initial_value_eur, currentValue);
+                totalReturn = initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0;
+            }
+            
+            // Update main display with safe values
+            document.getElementById('total-return-display').textContent = formatPercentage(totalReturn);
+            document.getElementById('current-value').textContent = formatCurrency(currentValue);
+            document.getElementById('initial-value').textContent = formatCurrency(initialValue);
+            
+            // Calculate days active
+            if (portfolioHistory && portfolioHistory.length > 0) {
+                const firstDate = new Date(portfolioHistory[0].timestamp);
+                const lastDate = new Date(portfolioHistory[portfolioHistory.length - 1].timestamp);
+                const daysActive = Math.ceil((lastDate - firstDate) / (1000 * 60 * 60 * 24));
+                document.getElementById('days-active').textContent = Math.max(daysActive, 0);
+            } else {
+                document.getElementById('days-active').textContent = '0';
+            }
+            
+            // Update trade statistics
+            if (trades && Array.isArray(trades)) {
+                const executedTrades = trades.filter(t => t.status === 'executed' || t.status === 'completed');
+                const highConfidenceTrades = executedTrades.filter(t => (t.confidence || 0) >= 70);
+                
+                document.getElementById('total-trades').textContent = executedTrades.length;
+                document.getElementById('overall-win-rate').textContent = 
+                    executedTrades.length > 0 ? 
+                    Math.round(highConfidenceTrades.length / executedTrades.length * 100) + '%' : '0%';
+            } else {
+                document.getElementById('total-trades').textContent = '0';
+                document.getElementById('overall-win-rate').textContent = '0%';
+            }
+            
+            // Calculate and update performance metrics
+            if (portfolioHistory && portfolioHistory.length > 0) {
+                const metrics = calculatePerformanceMetrics(portfolioHistory);
+                
+                // Safely update metrics with fallback values
+                document.getElementById('daily-return').textContent = formatPercentage(metrics.avgDailyReturn);
+                document.getElementById('max-drawdown').textContent = '-' + safeToFixed(metrics.maxDrawdown) + '%';
+                document.getElementById('sharpe-ratio').textContent = safeToFixed(metrics.sharpeRatio);
+                document.getElementById('volatility-30d').textContent = safeToFixed(metrics.volatility) + '%';
+                document.getElementById('best-day').textContent = '+' + safeToFixed(metrics.bestDay) + '%';
+                document.getElementById('worst-day').textContent = safeToFixed(metrics.worstDay) + '%';
+                document.getElementById('avg-daily-return').textContent = formatPercentage(metrics.avgDailyReturn);
+                document.getElementById('profitable-days').textContent = safeToFixed(metrics.profitableDays, 0) + '%';
+            } else {
+                // Set default values when no portfolio history is available
+                document.getElementById('daily-return').textContent = '+0.00%';
+                document.getElementById('max-drawdown').textContent = '-0.00%';
+                document.getElementById('sharpe-ratio').textContent = '0.00';
+                document.getElementById('volatility-30d').textContent = '0.00%';
+                document.getElementById('best-day').textContent = '+0.00%';
+                document.getElementById('worst-day').textContent = '0.00%';
+                document.getElementById('avg-daily-return').textContent = '+0.00%';
+                document.getElementById('profitable-days').textContent = '0%';
+            }
+            
+            // Note: Last update time display removed from header
+        }
+        // Create portfolio performance chart
+        function createPortfolioChart(data) {
+            let canvas = document.getElementById('portfolio-chart');
+            const chartContainer = document.querySelector('.chart-container.large');
+            
+            // Restore canvas if it was replaced with a message
+            if (!canvas && chartContainer) {
+                console.log('Restoring portfolio chart canvas');
+                chartContainer.innerHTML = '<canvas id="portfolio-chart"></canvas>';
+                canvas = document.getElementById('portfolio-chart');
+            }
+            
+            if (!canvas) {
+                console.warn('Portfolio chart canvas not found and could not be restored');
+                return;
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart more thoroughly
+            if (portfolioChart) {
+                try {
+                    portfolioChart.destroy();
+                    portfolioChart = null;
+                } catch (e) {
+                    console.warn('Error destroying portfolio chart:', e);
+                }
+            }
+            
+            // Clear any existing Chart.js instances on this canvas
+            if (Chart.getChart(canvas)) {
+                Chart.getChart(canvas).destroy();
+            }
+            
+            if (!data || data.length === 0) {
+                console.log('No portfolio data available for chart');
+                return;
+            }
+            
+            // Filter and process data - only include entries with meaningful portfolio values
+            const chartData = data
+                .filter(d => {
+                    const value = parseFloat(d.portfolio_value_eur || d.portfolio_value_usd || 0);
+                    return value > 0; // Only include non-zero values
+                })
+                .map(d => ({
+                    x: new Date(d.timestamp),
+                    y: parseFloat(d.portfolio_value_eur || d.portfolio_value_usd || 0)
+                }));
+            
+            console.log(`Portfolio chart: ${chartData.length} data points (filtered from ${data.length} total)`);
+            
+            if (chartData.length === 0) {
+                console.log('No valid portfolio data points for chart after filtering');
+                
+                // Show a message in the chart area
+                let message = `No portfolio data available for selected time range (${currentTimeRange.toUpperCase()})`;
+                if (currentTimeRange === '24h') {
+                    message = 'No data available for 24-hour range. Try 30D or ALL ranges for historical data.';
+                } else if (currentTimeRange === '7d') {
+                    message = 'No data available for 7-day range. Portfolio tracking was recently fixed - try 24H or 30D ranges.';
+                }
+                chartContainer.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 300px; color: #6c757d; font-style: italic; text-align: center; padding: 20px;">${message}</div>`;
+                return;
+            }
+            
+            if (chartData.length < 2) {
+                console.log('Insufficient data points for meaningful chart');
+                // Show a message for insufficient data
+                let message = `Only ${chartData.length} data point available for ${currentTimeRange.toUpperCase()} range (need at least 2 points)`;
+                if (currentTimeRange === '7d') {
+                    message = 'Only 1 data point available for 7-day range. Portfolio tracking was recently fixed - more data will be available soon.';
+                }
+                chartContainer.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 300px; color: #6c757d; font-style: italic; text-align: center; padding: 20px;">${message}</div>`;
+                return;
+            }
+            
+            // Create simple line chart
+            portfolioChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Portfolio Value (€)',
+                        data: chartData,
+                        borderColor: '#008cba',
+                        backgroundColor: 'rgba(0, 140, 186, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Portfolio Value Over Time'
+                        },
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                displayFormats: {
+                                    hour: 'HH:mm',
+                                    day: 'MMM dd',
+                                    week: 'MMM dd',
+                                    month: 'MMM yyyy'
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create allocation pie chart
+        function createAllocationChart(portfolio) {
+            const canvas = document.getElementById('allocation-chart');
+            if (!canvas) {
+                console.warn('Allocation chart canvas not found');
+                return;
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart more thoroughly
+            if (allocationChart) {
+                try {
+                    allocationChart.destroy();
+                    allocationChart = null;
+                } catch (e) {
+                    console.warn('Error destroying allocation chart:', e);
+                }
+            }
+            
+            // Clear any existing Chart.js instances on this canvas
+            if (Chart.getChart(canvas)) {
+                Chart.getChart(canvas).destroy();
+            }
+            
+            if (!portfolio) return;
+            
+            const totalValue = portfolio.portfolio_value_eur || 0;
+            const data = [];
+            const labels = [];
+            const colors = ['#008cba', '#28a745', '#ffc107', '#dc3545', '#17a2b8'];
+            
+            // Calculate asset values
+            if (portfolio.BTC && portfolio.BTC.amount > 0) {
+                const value = portfolio.BTC.amount * (portfolio.BTC.last_price_eur || 0);
+                data.push(value);
+                labels.push('BTC');
+            }
+            
+            if (portfolio.ETH && portfolio.ETH.amount > 0) {
+                const value = portfolio.ETH.amount * (portfolio.ETH.last_price_eur || 0);
+                data.push(value);
+                labels.push('ETH');
+            }
+            
+            if (portfolio.SOL && portfolio.SOL.amount > 0) {
+                const value = portfolio.SOL.amount * (portfolio.SOL.last_price_eur || 0);
+                data.push(value);
+                labels.push('SOL');
+            }
+            
+            if (portfolio.EUR && portfolio.EUR.amount > 0) {
+                data.push(portfolio.EUR.amount);
+                labels.push('EUR');
+            }
+            
+            allocationChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.slice(0, data.length),
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed / totalValue) * 100).toFixed(1);
+                                    return context.label + ': €' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create trading activity chart
+        function createTradingActivityChart(trades) {
+            const canvas = document.getElementById('trading-activity-chart');
+            if (!canvas) {
+                console.warn('Trading activity chart canvas not found');
+                return;
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart more thoroughly
+            if (tradingActivityChart) {
+                try {
+                    tradingActivityChart.destroy();
+                    tradingActivityChart = null;
+                } catch (e) {
+                    console.warn('Error destroying trading activity chart:', e);
+                }
+            }
+            
+            // Clear any existing Chart.js instances on this canvas
+            if (Chart.getChart(canvas)) {
+                Chart.getChart(canvas).destroy();
+            }
+            
+            if (!trades || trades.length === 0) return;
+            
+            // Group trades by day
+            const tradesByDay = {};
+            trades.forEach(trade => {
+                const date = new Date(trade.timestamp).toDateString();
+                if (!tradesByDay[date]) {
+                    tradesByDay[date] = { buy: 0, sell: 0, hold: 0 };
+                }
+                
+                if (trade.action) {
+                    const action = trade.action.toLowerCase();
+                    if (action === 'buy') tradesByDay[date].buy++;
+                    else if (action === 'sell') tradesByDay[date].sell++;
+                    else tradesByDay[date].hold++;
+                }
+            });
+            
+            const dates = Object.keys(tradesByDay).sort();
+            const buyData = dates.map(date => tradesByDay[date].buy);
+            const sellData = dates.map(date => tradesByDay[date].sell);
+            const holdData = dates.map(date => tradesByDay[date].hold);
+            
+            tradingActivityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dates.map(date => new Date(date).toLocaleDateString()),
+                    datasets: [
+                        {
+                            label: 'BUY',
+                            data: buyData,
+                            backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                            borderColor: '#28a745',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'SELL',
+                            data: sellData,
+                            backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                            borderColor: '#dc3545',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'HOLD',
+                            data: holdData,
+                            backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                            borderColor: '#ffc107',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create returns distribution chart
+        function createReturnsDistributionChart(data) {
+            const canvas = document.getElementById('returns-distribution-chart');
+            if (!canvas) {
+                console.warn('Returns distribution chart canvas not found');
+                return;
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart more thoroughly
+            if (returnsDistributionChart) {
+                try {
+                    returnsDistributionChart.destroy();
+                    returnsDistributionChart = null;
+                } catch (e) {
+                    console.warn('Error destroying returns distribution chart:', e);
+                }
+            }
+            
+            // Clear any existing Chart.js instances on this canvas
+            if (Chart.getChart(canvas)) {
+                Chart.getChart(canvas).destroy();
+            }
+            
+            if (!data || data.length < 2) return;
+            
+            // Calculate daily returns
+            const returns = [];
+            for (let i = 1; i < data.length; i++) {
+                const prev = parseFloat(data[i-1].portfolio_value_eur || data[i-1].portfolio_value_usd || 0);
+                const curr = parseFloat(data[i].portfolio_value_eur || data[i].portfolio_value_usd || 0);
+                if (prev > 0) {
+                    returns.push(((curr - prev) / prev) * 100);
+                }
+            }
+            
+            // Create histogram bins
+            const bins = 20;
+            const min = Math.min(...returns);
+            const max = Math.max(...returns);
+            const binSize = (max - min) / bins;
+            const histogram = new Array(bins).fill(0);
+            const labels = [];
+            
+            for (let i = 0; i < bins; i++) {
+                const binStart = min + i * binSize;
+                const binEnd = min + (i + 1) * binSize;
+                labels.push(binStart.toFixed(1) + '%');
+                
+                returns.forEach(ret => {
+                    if (ret >= binStart && ret < binEnd) {
+                        histogram[i]++;
+                    }
+                });
+            }
+            
+            returnsDistributionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Frequency',
+                        data: histogram,
+                        backgroundColor: 'rgba(0, 140, 186, 0.6)',
+                        borderColor: '#008cba',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Daily Return (%)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Frequency'
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update recent trades table
+        function updateRecentTradesTable(trades) {
+            const tbody = document.getElementById('recent-trades-table');
+            
+            if (!trades || trades.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No trades available</td></tr>';
+                return;
+            }
+            
+            const recentTrades = trades.slice(-10).reverse(); // Last 10 trades
+            
+            const html = recentTrades.map(trade => {
+                const date = new Date(trade.timestamp).toLocaleDateString();
+                const time = new Date(trade.timestamp).toLocaleTimeString();
+                const asset = trade.product_id ? trade.product_id.split('-')[0] : 'Unknown';
+                const action = trade.action || 'UNKNOWN';
+                const amount = trade.trade_amount_usd || trade.trade_amount_eur || 0;
+                const confidence = trade.confidence || 0;
+                const status = trade.status || 'unknown';
+                
+                const actionClass = action === 'BUY' ? 'success' : action === 'SELL' ? 'danger' : 'secondary';
+                const confidenceClass = confidence >= 70 ? 'text-success' : confidence >= 50 ? 'text-warning' : 'text-danger';
+                const statusClass = status === 'executed' || status === 'completed' ? 'text-success' : 'text-muted';
+                
+                return `
+                    <tr>
+                        <td>
+                            <div>${date}</div>
+                            <small class="text-muted">${time}</small>
+                        </td>
+                        <td><strong>${asset}</strong></td>
+                        <td><span class="badge bg-${actionClass}">${action}</span></td>
+                        <td>€${amount.toFixed(2)}</td>
+                        <td><span class="${confidenceClass}">${confidence}%</span></td>
+                        <td><span class="text-muted">--</span></td>
+                        <td><span class="${statusClass}">${status}</span></td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tbody.innerHTML = html;
+        }
+
+        // Update AI decision analysis
+        function updateAIAnalysis(trades) {
+            if (!trades || trades.length === 0) return;
+            
+            const executedTrades = trades.filter(t => t.status === 'executed' || t.status === 'completed');
+            const buyTrades = executedTrades.filter(t => t.action === 'BUY');
+            const sellTrades = executedTrades.filter(t => t.action === 'SELL');
+            const holdTrades = trades.filter(t => t.action === 'HOLD');
+            const highConfidenceTrades = executedTrades.filter(t => t.confidence >= 70);
+            
+            const avgConfidence = executedTrades.length > 0 ? 
+                executedTrades.reduce((sum, t) => sum + (t.confidence || 0), 0) / executedTrades.length : 0;
+            
+            document.getElementById('avg-confidence').textContent = avgConfidence.toFixed(0) + '%';
+            document.getElementById('high-confidence-trades').textContent = highConfidenceTrades.length;
+            document.getElementById('high-confidence-success').textContent = 
+                executedTrades.length > 0 ? 
+                Math.round(highConfidenceTrades.length / executedTrades.length * 100) + '%' : '0%';
+            document.getElementById('buy-decisions').textContent = buyTrades.length;
+            document.getElementById('sell-decisions').textContent = sellTrades.length;
+            document.getElementById('hold-decisions').textContent = holdTrades.length;
+        }
+
+        // Time range selector event handlers
+        function setupTimeRangeSelector() {
+            const buttons = document.querySelectorAll('.time-range-btn');
+            console.log('Setting up time range selector, found', buttons.length, 'buttons');
+            
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    console.log('Time range button clicked:', this.dataset.range);
+                    
+                    // Remove active class from all buttons
+                    buttons.forEach(b => b.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Update current time range
+                    currentTimeRange = this.dataset.range;
+                    
+                    // Update charts
+                    updateChartsForTimeRange();
+                });
+            });
+        }
+        
+        
+        // Filter data based on time range
+        function filterDataByTimeRange(data, range) {
+            if (!data || data.length === 0) return data;
+            
+            const now = new Date();
+            let cutoffDate;
+            
+            switch(range) {
+                case '24h':
+                    cutoffDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                    break;
+                case '7d':
+                    cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    break;
+                case '30d':
+                    cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    break;
+                case '90d':
+                    cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+                    break;
+                case '1y':
+                    cutoffDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+                    break;
+                case 'all':
+                default:
+                    return data;
+            }
+            
+            return data.filter(d => new Date(d.timestamp) >= cutoffDate);
+        }
+
+        // Update charts for selected time range
+        function updateChartsForTimeRange() {
+            console.log('Updating charts for time range:', currentTimeRange);
+            console.log('Portfolio data length:', portfolioData.length);
+            console.log('Trades data length:', tradesData.length);
+            
+            const filteredPortfolioData = filterDataByTimeRange(portfolioData, currentTimeRange);
+            const filteredTradesData = filterDataByTimeRange(tradesData, currentTimeRange);
+            
+            console.log('Filtered portfolio data length:', filteredPortfolioData.length);
+            console.log('Filtered trades data length:', filteredTradesData.length);
+            
+            // Destroy existing charts before creating new ones
+            destroyAllCharts();
+            
+            if (!isCreatingCharts) {
+                isCreatingCharts = true;
+                try {
+                    if (filteredPortfolioData.length > 0) {
+                        createPortfolioChart(filteredPortfolioData);  // Re-enabled for Portfolio Value Over Time
+                        createReturnsDistributionChart(filteredPortfolioData);
+                    }
+                    
+                    if (filteredTradesData.length > 0) {
+                        createTradingActivityChart(filteredTradesData);
+                    }
+                } catch (chartError) {
+                    console.error('Error updating charts for time range:', chartError);
+                } finally {
+                    isCreatingCharts = false;
+                }
+            }
+        }
+        // Main data loading function
+        async function loadAllData() {
+            try {
+                console.log('Loading dashboard data...');
+                
+                // Load portfolio data
+                const portfolio = await loadData('/crypto-bot/data/portfolio/portfolio.json');
+                console.log('Portfolio data loaded:', portfolio ? 'Success' : 'Failed');
+                
+                // Load performance tracking data (NEW)
+                const performanceData = await loadData('/crypto-bot/data/dashboard/performance_data.json');
+                console.log('Performance data loaded:', performanceData ? 'Success' : 'Failed');
+                
+                // Load portfolio history
+                const portfolioHistoryCSV = await loadData('/crypto-bot/data/portfolio/portfolio_history.csv');
+                let portfolioHistory = [];
+                if (portfolioHistoryCSV) {
+                    try {
+                        portfolioHistory = parseCSV(portfolioHistoryCSV);
+                        console.log('Portfolio history loaded:', portfolioHistory.length, 'records');
+                    } catch (csvError) {
+                        console.error('Error parsing CSV:', csvError);
+                        portfolioHistory = [];
+                    }
+                } else {
+                    console.log('No portfolio history data available');
+                }
+                
+                // Load trades data
+                const trades = await loadData('/crypto-bot/data/trades/trade_history.json');
+                console.log('Trades data loaded:', trades ? `${trades.length} trades` : 'Failed');
+                
+                // Store data globally
+                portfolioData = portfolioHistory || [];
+                tradesData = trades || [];
+                performanceTrackingData = performanceData || null;  // Store performance data globally
+                
+                // Update all displays with performance data integration
+                updateKeyMetrics(portfolio, trades, portfolioHistory, performanceData);
+                updatePerformanceCharts(performanceData);  // NEW: Update performance charts
+                updateRecentTradesTable(trades);
+                updateAIAnalysis(trades);
+                
+                // Destroy existing charts before creating new ones
+                destroyAllCharts();
+                
+                // Create charts with error handling
+                if (!isCreatingCharts) {
+                    isCreatingCharts = true;
+                    try {
+                        if (portfolioHistory && portfolioHistory.length > 0) {
+                            createPortfolioChart(portfolioHistory);  // Re-enabled for Portfolio Value Over Time
+                            createReturnsDistributionChart(portfolioHistory);
+                        } else {
+                            console.log('No portfolio history available for charts');
+                        }
+                        
+                        if (portfolio) {
+                            createAllocationChart(portfolio);
+                        }
+                        
+                        if (trades && trades.length > 0) {
+                            createTradingActivityChart(trades);
+                        }
+                    } catch (chartError) {
+                        console.error('Error creating charts:', chartError);
+                    } finally {
+                        isCreatingCharts = false;
+                    }
+                }
+                
+                // Update bot status
+                updateBotStatus();
+                
+                console.log('Dashboard data loading completed');
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showErrorMessage('Failed to load performance data. Please check if the bot is running and data files are accessible.');
+            }
+        }
+
+        // Update bot status indicator (removed - no longer needed)
+        function updateBotStatus() {
+            // Bot status indicator removed from UI
+            console.log('Bot status check completed');
+        }
+
+        // Show error message
+        function showErrorMessage(message) {
+            const container = document.querySelector('.container-fluid');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger alert-dismissible fade show';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            container.insertBefore(errorDiv, container.firstChild);
+        }
+
+        // Auto-refresh functionality
+        function startAutoRefresh() {
+            // Refresh every 60 seconds
+            setInterval(() => {
+                loadAllData();
+            }, 60000);
+        }
+
+        // Initialize dashboard
+        async function initializeDashboard() {
+            try {
+                console.log('Initializing dashboard...');
+                
+                // Load initial data
+                await loadAllData();
+                console.log('Initial data loaded');
+                
+                // Setup event handlers after data is loaded
+                setupTimeRangeSelector();
+                console.log('Time range selector setup complete');
+                
+                // Start auto-refresh
+                startAutoRefresh();
+                
+                console.log('Advanced Performance Dashboard initialized successfully');
+                
+            } catch (error) {
+                console.error('Error initializing dashboard:', error);
+                showErrorMessage('Failed to initialize dashboard. Please refresh the page.');
+            }
+        }
+
+        // Page load event - use the same pattern as main dashboard
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDashboard);
+        } else {
+            // DOM is already loaded
+            initializeDashboard();
+        }
+        
+        // Handle visibility change to pause/resume updates
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log('Dashboard hidden - pausing updates');
+            } else {
+                console.log('Dashboard visible - resuming updates');
+                loadAllData(); // Refresh data when page becomes visible
+            }
+        });
+        
+        // Handle window resize for chart responsiveness
+        window.addEventListener('resize', function() {
+            // Delay resize to avoid excessive calls
+            clearTimeout(window.resizeTimeout);
+            window.resizeTimeout = setTimeout(function() {
+                if (portfolioChart) portfolioChart.resize();
+                if (allocationChart) allocationChart.resize();
+                if (returnsDistributionChart) returnsDistributionChart.resize();
+                if (tradingActivityChart) tradingActivityChart.resize();
+            }, 250);
+        });
+
+        // Phase 3: Advanced Performance Management Functions
+        function updateAdvancedFeatures(advancedFeatures) {
+            try {
+                if (!advancedFeatures) {
+                    console.log('No advanced features data available');
+                    return;
+                }
+
+                // Update performance goals
+                updatePerformanceGoals(advancedFeatures.goals_status);
+                
+                // Update benchmark comparison
+                updateBenchmarkComparison(advancedFeatures.benchmark_comparison);
+                
+                // Update performance insights
+                updatePerformanceInsights(advancedFeatures.insights);
+                
+                // Update performance grades
+                updatePerformanceGrades(advancedFeatures.performance_grades);
+                
+                // Update quick stats
+                updateQuickStats(advancedFeatures.quick_stats);
+                
+                console.log('Advanced features updated successfully');
+                
+            } catch (error) {
+                console.error('Error updating advanced features:', error);
+            }
+        }
+
+        function updatePerformanceGoals(goalsStatus) {
+            const goalsContainer = document.getElementById('goals-status');
+            const goalsCount = document.getElementById('goals-count');
+            
+            if (!goalsStatus || goalsStatus.status === 'error' || goalsStatus.status === 'no_data') {
+                goalsContainer.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-target fa-2x mb-2"></i>
+                        <p>No performance goals data available</p>
+                    </div>
+                `;
+                goalsCount.textContent = '0 Active';
+                return;
+            }
+
+            const goalResults = goalsStatus.goal_results || [];
+            goalsCount.textContent = `${goalResults.length} Active`;
+
+            if (goalResults.length === 0) {
+                goalsContainer.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-target fa-2x mb-2"></i>
+                        <p>No performance goals set</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let goalsHtml = '';
+            goalResults.forEach(goal => {
+                const achievedClass = goal.achieved ? '' : 'not-achieved';
+                const progressBarClass = goal.achieved ? '' : 'not-achieved';
+                
+                goalsHtml += `
+                    <div class="goal-item ${achievedClass}">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>${goal.type.replace('_', ' ').toUpperCase()}</strong>
+                            <span class="badge ${goal.achieved ? 'bg-success' : 'bg-danger'}">
+                                ${goal.achieved ? 'Achieved' : 'Not Achieved'}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between text-sm">
+                            <span>Target: ${goal.target}${goal.type.includes('return') ? '%' : ''}</span>
+                            <span>Current: ${goal.current.toFixed(2)}${goal.type.includes('return') ? '%' : ''}</span>
+                        </div>
+                        <div class="goal-progress">
+                            <div class="goal-progress-bar ${progressBarClass}" style="width: ${Math.min(goal.progress, 100)}%"></div>
+                        </div>
+                        <small class="text-muted">${goal.timeframe} • ${goal.progress.toFixed(1)}% progress</small>
+                    </div>
+                `;
+            });
+
+            goalsContainer.innerHTML = goalsHtml;
+        }
+
+        function updateBenchmarkComparison(benchmarkComparison) {
+            const benchmarkContainer = document.getElementById('benchmark-comparison');
+            
+            if (!benchmarkComparison || benchmarkComparison.status === 'error' || benchmarkComparison.status === 'no_data') {
+                benchmarkContainer.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-balance-scale fa-2x mb-2"></i>
+                        <p>No benchmark comparison data available</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const comparisons = benchmarkComparison.comparisons || [];
+            
+            if (comparisons.length === 0) {
+                benchmarkContainer.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-balance-scale fa-2x mb-2"></i>
+                        <p>No benchmarks available for comparison</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let benchmarkHtml = '';
+            comparisons.forEach(comparison => {
+                const outperformingClass = comparison.outperforming ? 'benchmark-outperforming' : 'benchmark-underperforming';
+                const icon = comparison.outperforming ? 'fa-arrow-up text-success' : 'fa-arrow-down text-danger';
+                
+                benchmarkHtml += `
+                    <div class="benchmark-item ${outperformingClass}">
+                        <div>
+                            <strong>${comparison.benchmark_name}</strong>
+                            <div class="small text-muted">
+                                Benchmark: ${comparison.benchmark_return.toFixed(2)}%
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="d-flex align-items-center">
+                                <i class="fas ${icon} me-2"></i>
+                                <span class="fw-bold">${Math.abs(comparison.outperformance).toFixed(2)}%</span>
+                            </div>
+                            <small class="text-muted">
+                                ${comparison.outperforming ? 'Outperforming' : 'Underperforming'}
+                            </small>
+                        </div>
+                    </div>
+                `;
+            });
+
+            benchmarkContainer.innerHTML = benchmarkHtml;
+        }
+
+        function updatePerformanceInsights(insights) {
+            const insightsContainer = document.getElementById('performance-insights');
+            
+            if (!insights || insights.length === 0) {
+                insightsContainer.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-brain fa-2x mb-2"></i>
+                        <p>No performance insights available</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let insightsHtml = '';
+            insights.slice(0, 8).forEach(insight => { // Limit to 8 insights
+                insightsHtml += `
+                    <div class="insight-item">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        ${insight}
+                    </div>
+                `;
+            });
+
+            insightsContainer.innerHTML = insightsHtml;
+        }
+
+        function updatePerformanceGrades(performanceGrades) {
+            const gradesContainer = document.getElementById('performance-grades');
+            
+            if (!performanceGrades || Object.keys(performanceGrades).length === 0) {
+                gradesContainer.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-medal fa-2x mb-2"></i>
+                        <p>No performance grades available</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let gradesHtml = '';
+            Object.entries(performanceGrades).forEach(([period, grade]) => {
+                const gradeClass = `grade-${grade.toLowerCase().charAt(0)}`;
+                
+                gradesHtml += `
+                    <div class="text-center mb-3">
+                        <div class="period-label">${period.toUpperCase()}</div>
+                        <div class="grade-badge ${gradeClass}">${grade}</div>
+                    </div>
+                `;
+            });
+
+            gradesContainer.innerHTML = gradesHtml;
+        }
+
+        function updateQuickStats(quickStats) {
+            if (!quickStats) return;
+
+            // Update best period
+            const bestPeriodEl = document.getElementById('best-period');
+            if (quickStats.best_period) {
+                bestPeriodEl.innerHTML = `
+                    <div class="text-success">${quickStats.best_period.period.toUpperCase()}</div>
+                    <small>+${quickStats.best_period.return.toFixed(2)}%</small>
+                `;
+            } else {
+                bestPeriodEl.textContent = '-';
+            }
+
+            // Update worst period
+            const worstPeriodEl = document.getElementById('worst-period');
+            if (quickStats.worst_period) {
+                worstPeriodEl.innerHTML = `
+                    <div class="text-danger">${quickStats.worst_period.period.toUpperCase()}</div>
+                    <small>${quickStats.worst_period.return.toFixed(2)}%</small>
+                `;
+            } else {
+                worstPeriodEl.textContent = '-';
+            }
+
+            // Update average return
+            const avgReturnEl = document.getElementById('avg-return');
+            if (quickStats.average_return !== undefined) {
+                const returnClass = quickStats.average_return >= 0 ? 'text-success' : 'text-danger';
+                avgReturnEl.innerHTML = `<span class="${returnClass}">${quickStats.average_return.toFixed(2)}%</span>`;
+            } else {
+                avgReturnEl.textContent = '-';
+            }
+
+            // Update average Sharpe
+            const avgSharpeEl = document.getElementById('avg-sharpe');
+            if (quickStats.average_sharpe !== undefined) {
+                const sharpeClass = quickStats.average_sharpe >= 1 ? 'text-success' : quickStats.average_sharpe >= 0.5 ? 'text-warning' : 'text-danger';
+                avgSharpeEl.innerHTML = `<span class="${sharpeClass}">${quickStats.average_sharpe.toFixed(2)}</span>`;
+            } else {
+                avgSharpeEl.textContent = '-';
+            }
+        }
+    </script>
+</body>
+</html>

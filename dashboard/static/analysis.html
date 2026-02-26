@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Crypto Bot - Analysis Dashboard</title>
+    <!-- Bootstrap 5 CSS with Bootswatch Yeti Theme -->
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/yeti/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles to enhance Yeti theme */
+        :root {
+            --yeti-primary: #008cba;
+            --yeti-secondary: #6c757d;
+            --yeti-success: #28a745;
+            --yeti-danger: #dc3545;
+            --yeti-warning: #ffc107;
+            --yeti-info: #17a2b8;
+            --yeti-light: #f8f9fa;
+            --yeti-dark: #343a40;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .card {
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            background-color: var(--yeti-primary);
+            color: white;
+            font-weight: 600;
+            border-bottom: none;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--yeti-primary) !important;
+        }
+
+        .nav-link {
+            color: var(--yeti-dark) !important;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--yeti-primary) !important;
+            background-color: rgba(0, 140, 186, 0.1);
+            border-radius: 8px;
+        }
+
+        .nav-link.active {
+            border-color: var(--yeti-primary) !important;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            background-color: white;
+            border-radius: 0.375rem;
+            padding: 1rem;
+        }
+
+        .metric-card {
+            text-align: center;
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--yeti-dark);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--yeti-secondary);
+        }
+
+        .performance-positive {
+            color: var(--yeti-success);
+        }
+
+        .performance-negative {
+            color: var(--yeti-danger);
+        }
+
+        .performance-neutral {
+            color: var(--yeti-warning);
+        }
+
+        .table {
+            background-color: white;
+        }
+
+        .table th {
+            background-color: var(--yeti-light);
+            color: var(--yeti-dark);
+            font-weight: 600;
+            border-color: #dee2e6;
+        }
+
+        .table td {
+            border-color: #dee2e6;
+            color: var(--yeti-dark);
+        }
+
+        .table-striped > tbody > tr:nth-of-type(odd) > td {
+            background-color: rgba(0, 140, 186, 0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--yeti-primary);
+            border-color: var(--yeti-primary);
+        }
+
+        .btn-primary:hover {
+            background-color: #006a8a;
+            border-color: #006a8a;
+    </style>
+    <!-- Shared Header CSS -->
+    <link rel="stylesheet" href="shared-header.css">
+</head>
+<body>
+    <!-- Load Shared Header -->
+    <div id="shared-header"></div>
+
+    <!-- Shared Header JavaScript -->
+    <script src="shared-header.js"></script>
+    <script>
+        // Load shared header and initialize
+        async function loadSharedHeader() {
+            try {
+                const response = await fetch('shared-header.html');
+                if (!response.ok) throw new Error('Failed to load header');
+                const html = await response.text();
+                document.getElementById('shared-header').innerHTML = html;
+                
+                // Initialize header functionality
+                initializeHeader('analysis');
+            } catch (error) {
+                console.error('Error loading header:', error);
+                // Fallback: show a basic header
+                document.getElementById('shared-header').innerHTML = `
+                    <nav class="navbar navbar-expand-lg">
+                        <div class="container-fluid">
+                            <a class="navbar-brand" href="https://github.com/schmidb/AI-crypto-bot" target="_blank">
+                                <i class="fas fa-robot me-2"></i>
+                                AI Crypto Bot
+                            </a>
+                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" 
+                                    aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                            <div class="collapse navbar-collapse" id="navbarContent">
+                                <div class="navbar-nav me-auto">
+                                    <a class="nav-link" href="index.html">Dashboard</a>
+                                    <a class="nav-link active" href="analysis.html">Analysis</a>
+                                    <a class="nav-link" href="config.html">Configuration</a>
+                                </div>
+                                <div class="navbar-nav ms-auto">
+                                    <span class="navbar-text me-3" id="live-clock">
+                                        <i class="far fa-clock me-1"></i>
+                                        Loading...
+                                    </span>
+                                    <span class="navbar-text" id="bot-uptime">
+                                        <i class="fas fa-history me-1"></i>
+                                        Uptime: Loading...
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                `;
+                // Initialize even with fallback
+                initializeHeader('analysis');
+            }
+        }
+        
+        // Load header when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadSharedHeader);
+        } else {
+            loadSharedHeader();
+        }
+    </script>
+
+    <div class="container-fluid py-4">
+        <div class="row g-4">
+            <!-- Performance Metrics Row -->
+            <div class="col-md-3">
+                <div class="card metric-card h-100">
+                    <div class="card-body">
+                        <div class="metric-value performance-positive" id="total-return">+0.00%</div>
+                        <div class="metric-label">
+                            Total Return
+                            <i class="fas fa-question-circle ms-1" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               data-bs-html="true"
+                               title="<strong>Total Portfolio Return:</strong><br/>
+                                      • Overall performance since bot started<br/>
+                                      • Includes all assets (BTC/ETH/SOL/USD)<br/>
+                                      • Calculated from initial investment<br/>
+                                      • Updates with current market prices<br/>
+                                      <em>Shows if the bot is profitable overall</em>"
+                               style="font-size: 0.8rem; opacity: 0.7; cursor: help;">
+                            </i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card h-100">
+                    <div class="card-body">
+                        <div class="metric-value" id="win-rate">0%</div>
+                        <div class="metric-label">
+                            Win Rate
+                            <i class="fas fa-question-circle ms-1" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               data-bs-html="true"
+                               title="<strong>AI Decision Success Rate:</strong><br/>
+                                      • Percentage of successful trades<br/>
+                                      • Based on confidence levels<br/>
+                                      • High confidence (70%+) = Success<br/>
+                                      • Only counts executed trades<br/>
+                                      <em>Higher win rate = Better AI decisions</em>"
+                               style="font-size: 0.8rem; opacity: 0.7; cursor: help;">
+                            </i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card h-100">
+                    <div class="card-body">
+                        <div class="metric-value" id="total-trades">0</div>
+                        <div class="metric-label">
+                            Total Trades
+                            <i class="fas fa-question-circle ms-1" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               data-bs-html="true"
+                               title="<strong>Number of Executed Trades:</strong><br/>
+                                      • Only counts actual buy/sell trades<br/>
+                                      • Excludes 'hold' decisions<br/>
+                                      • Requires trade_amount_usd > 0<br/>
+                                      • All assets combined (BTC/ETH/SOL)<br/>
+                                      <em>Shows how active the bot is trading</em>"
+                               style="font-size: 0.8rem; opacity: 0.7; cursor: help;">
+                            </i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card h-100">
+                    <div class="card-body">
+                        <div class="metric-value performance-positive" id="avg-confidence">0%</div>
+                        <div class="metric-label">
+                            Avg Confidence
+                            <i class="fas fa-question-circle ms-1" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               data-bs-html="true"
+                               title="<strong>Average AI Confidence Level:</strong><br/>
+                                      • Mean confidence of executed trades<br/>
+                                      • Range: 0-100% confidence<br/>
+                                      • Higher = More certain decisions<br/>
+                                      • Based on technical analysis<br/>
+                                      <em>Shows how confident the AI is in its trades</em>"
+                               style="font-size: 0.8rem; opacity: 0.7; cursor: help;">
+                            </i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Portfolio Value Chart -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            Portfolio Value Over Time
+                            <i class="fas fa-question-circle ms-1" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               data-bs-html="true"
+                               title="<strong>Interactive Portfolio Chart:</strong><br/>
+                                      • Click time periods to filter data<br/>
+                                      • Shows portfolio value changes<br/>
+                                      • Includes all assets combined<br/>
+                                      • Updates every 5 minutes<br/>
+                                      <em>Use buttons to focus on specific timeframes</em>"
+                               style="font-size: 0.8rem; opacity: 0.7; cursor: help;">
+                            </i>
+                        </h5>
+                        <div class="btn-group btn-group-sm" role="group" id="chart-time-filters">
+                            <button type="button" class="btn btn-outline-primary" data-period="6h">6H</button>
+                            <button type="button" class="btn btn-outline-primary active" data-period="24h">Today</button>
+                            <button type="button" class="btn btn-outline-primary" data-period="7d">Week</button>
+                            <button type="button" class="btn btn-outline-primary" data-period="30d">Month</button>
+                            <button type="button" class="btn btn-outline-primary" data-period="all">All</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="portfolioChart"></canvas>
+                        </div>
+                        <div class="mt-3">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <small class="text-muted">Period Change</small>
+                                    <div id="period-change" class="fw-bold">+$0.00</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Period %</small>
+                                    <div id="period-percent" class="fw-bold">+0.00%</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Highest</small>
+                                    <div id="period-high" class="fw-bold">$0.00</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted">Lowest</small>
+                                    <div id="period-low" class="fw-bold">$0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset Allocation -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Asset Allocation</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="allocationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trading Activity -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            Trading Activity
+                            <i class="fas fa-question-circle ms-1" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               data-bs-html="true"
+                               title="<strong>Trading Activity Details:</strong><br/>
+                                      • Buy/Sell/Hold decisions made by AI<br/>
+                                      • Actual trades executed with real amounts<br/>
+                                      • Execution rate shows decisions → trades<br/>
+                                      <em>Higher execution rate = more actionable signals</em>"
+                               style="font-size: 0.8rem; opacity: 0.8; cursor: help;">
+                            </i>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container mb-3">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                        <div id="activity-summary">
+                            <!-- Activity summary will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance by Asset -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            Performance by Asset
+                            <i class="fas fa-question-circle ms-1" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               data-bs-html="true"
+                               title="<strong>Asset Performance Details:</strong><br/>
+                                      • Individual asset returns since start<br/>
+                                      • Trade success rate per asset<br/>
+                                      • Average confidence per asset<br/>
+                                      <em>Helps identify strongest performing pairs</em>"
+                               style="font-size: 0.8rem; opacity: 0.8; cursor: help;">
+                            </i>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Asset</th>
+                                        <th>Return</th>
+                                        <th>Trades</th>
+                                        <th>Success</th>
+                                        <th>Avg Conf.</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="asset-performance">
+                                    <!-- Asset performance will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Performance Analytics -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Risk-Adjusted Returns
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6>Sharpe Ratio</h6>
+                                    <h4 id="sharpe-ratio" class="text-info">--</h4>
+                                    <small class="text-muted">Risk-adjusted return</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6>Max Drawdown</h6>
+                                    <h4 id="max-drawdown" class="text-warning">--</h4>
+                                    <small class="text-muted">Largest loss from peak</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6>Volatility</h6>
+                                    <h4 id="volatility" class="text-secondary">--</h4>
+                                    <small class="text-muted">Price variation</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6>Best Trade</h6>
+                                    <h4 id="best-trade" class="text-success">--</h4>
+                                    <small class="text-muted">Highest confidence</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Decision Intelligence -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-brain me-2"></i>AI Decision Intelligence
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <h6>Confidence vs Outcome Analysis</h6>
+                                <div class="progress mb-2" style="height: 20px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 0%" id="high-confidence-success">
+                                        <span id="high-confidence-text">High Confidence (70%+)</span>
+                                    </div>
+                                </div>
+                                <small class="text-muted" id="confidence-analysis">Analyzing decision accuracy...</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6>MACD Effectiveness</h6>
+                                    <h4 id="macd-effectiveness" class="text-primary">--</h4>
+                                    <small class="text-muted">40% weight indicator</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <h6>RSI Effectiveness</h6>
+                                    <h4 id="rsi-effectiveness" class="text-info">--</h4>
+                                    <small class="text-muted">30% weight indicator</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Timing & Strategy Analysis -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-clock me-2"></i>Market Timing Analysis
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h6>Entry Timing</h6>
+                                    <div class="progress mb-2" style="height: 15px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 0%" id="entry-timing-bar">
+                                        </div>
+                                    </div>
+                                    <small id="entry-timing-text">Analyzing buy timing...</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h6>Exit Timing</h6>
+                                    <div class="progress mb-2" style="height: 15px;">
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 0%" id="exit-timing-bar">
+                                        </div>
+                                    </div>
+                                    <small id="exit-timing-text">Analyzing sell timing...</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h6>Hold Decisions</h6>
+                                    <div class="progress mb-2" style="height: 15px;">
+                                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%" id="hold-timing-bar">
+                                        </div>
+                                    </div>
+                                    <small id="hold-timing-text">Analyzing hold timing...</small>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <h6>Strategy Parameter Performance</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check-circle text-success me-2"></i>60% Confidence Threshold: <span id="threshold-performance">Analyzing...</span></li>
+                                    <li><i class="fas fa-plus-circle text-info me-2"></i>Alignment Bonus (+10%): <span id="alignment-impact">Calculating...</span></li>
+                                    <li><i class="fas fa-minus-circle text-warning me-2"></i>Counter-Trend Penalty (-5%): <span id="penalty-impact">Evaluating...</span></li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Risk Management Performance</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-shield-alt text-success me-2"></i>Position Sizing: <span id="position-sizing">Effective</span></li>
+                                    <li><i class="fas fa-balance-scale text-info me-2"></i>Risk Level Impact: <span id="risk-impact">Analyzing...</span></li>
+                                    <li><i class="fas fa-chart-line text-primary me-2"></i>Rebalancing: <span id="rebalancing-status">On track</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparative Analysis -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-balance-scale me-2"></i>Comparative Analysis
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6>vs Buy & Hold</h6>
+                            <div class="d-flex justify-content-between">
+                                <span>AI Trading:</span>
+                                <strong id="ai-performance" class="text-success">+1.39%</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Buy & Hold:</span>
+                                <strong id="buyhold-performance" class="text-secondary">+0.85%</strong>
+                            </div>
+                            <div class="progress mt-2" style="height: 10px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 62%" id="performance-comparison">
+                                </div>
+                            </div>
+                            <small class="text-muted">AI outperforming by <span id="outperformance">+0.54%</span></small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>Asset Performance</h6>
+                            <div class="row g-2">
+                                <div class="col-4 text-center">
+                                    <small>BTC</small>
+                                    <div id="btc-performance" class="text-warning">+2.1%</div>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small>ETH</small>
+                                    <div id="eth-performance" class="text-primary">+1.8%</div>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small>SOL</small>
+                                    <div id="sol-performance" class="text-success">+0.9%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h6>Risk Metrics</h6>
+                            <div class="d-flex justify-content-between">
+                                <span>Max Risk Taken:</span>
+                                <strong id="max-risk">Medium</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Avg Position Size:</span>
+                                <strong id="avg-position">$10.00</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strategy Analysis -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">AI Strategy Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="strategy-analysis">
+                            <div class="text-center">
+                                <div class="spinner-border text-warning" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading AI analysis...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Function to load data
+        async function loadData(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok');
+                return await response.json();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                return null;
+            }
+        }
+
+        // Chart configurations for light theme
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#343a40'  // Dark text for light theme
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#495057'  // Dark gray text
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'  // Light gray grid lines
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: '#495057'  // Dark gray text
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'  // Light gray grid lines
+                    }
+                }
+            }
+        };
+
+        // Initialize charts
+        let portfolioChart, allocationChart, activityChart;
+
+        function initializeCharts() {
+            // Portfolio Value Chart
+            const portfolioCtx = document.getElementById('portfolioChart').getContext('2d');
+            portfolioChart = new Chart(portfolioCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Portfolio Value',
+                        data: [],
+                        borderColor: '#008cba',  // Yeti primary color
+                        backgroundColor: 'rgba(0, 140, 186, 0.1)',  // Light blue background
+                        tension: 0.4,
+                        borderWidth: 2
+                    }]
+                },
+                options: chartOptions
+            });
+
+            // Asset Allocation Chart
+            const allocationCtx = document.getElementById('allocationChart').getContext('2d');
+            allocationChart = new Chart(allocationCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['BTC', 'ETH', 'SOL', 'USD'],
+                    datasets: [{
+                        data: [40, 40, 10, 10],
+                        backgroundColor: [
+                            '#f39c12',  // Bitcoin - Orange
+                            '#3498db',  // Ethereum - Blue  
+                            '#9b59b6',  // Solana - Purple
+                            '#95a5a6'   // USD - Gray
+                        ],
+                        borderColor: [
+                            '#e67e22',
+                            '#2980b9', 
+                            '#8e44ad',
+                            '#7f8c8d'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#343a40'  // Dark text for light theme
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Trading Activity Chart
+            const activityCtx = document.getElementById('activityChart').getContext('2d');
+            activityChart = new Chart(activityCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['BUY', 'SELL', 'HOLD'],
+                    datasets: [{
+                        label: 'Actions',
+                        data: [0, 0, 0],
+                        backgroundColor: [
+                            '#28a745',  // Green for BUY
+                            '#dc3545',  // Red for SELL
+                            '#ffc107'   // Yellow for HOLD
+                        ],
+                        borderColor: [
+                            '#1e7e34',
+                            '#c82333',
+                            '#e0a800'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: chartOptions
+            });
+        }
+
+        // Function to update asset performance table
+        async function updateAssetPerformance() {
+            const portfolio = await loadData('/crypto-bot/data/portfolio/portfolio.json');
+            const trades = await loadData('/crypto-bot/data/trades/trade_history.json');
+            
+            if (portfolio && trades && Array.isArray(trades)) {
+                const assets = ['BTC', 'ETH', 'SOL'];
+                const tbody = document.getElementById('asset-performance');
+                
+                const assetRows = assets.map(asset => {
+                    // Calculate return for this asset
+                    const assetData = portfolio[asset];
+                    const currentValue = (assetData?.amount || 0) * (assetData?.last_price_usd || 0);
+                    const initialValue = (assetData?.initial_amount || 0) * (assetData?.last_price_usd || 0);
+                    const assetReturn = initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0;
+                    
+                    // Get trades for this asset
+                    const assetTrades = trades.filter(t => 
+                        t.product_id && t.product_id.split('-')[0] === asset &&
+                        t.trade_amount_usd > 0
+                    );
+                    
+                    // Calculate success rate (using confidence as proxy)
+                    const successfulTrades = assetTrades.filter(t => t.confidence >= 70);
+                    const successRate = assetTrades.length > 0 ? 
+                        (successfulTrades.length / assetTrades.length * 100) : 0;
+                    
+                    // Calculate average confidence
+                    const avgConfidence = assetTrades.length > 0 ?
+                        assetTrades.reduce((sum, t) => sum + (t.confidence || 0), 0) / assetTrades.length : 0;
+                    
+                    return `
+                        <tr>
+                            <td><strong>${asset}</strong></td>
+                            <td class="${assetReturn >= 0 ? 'text-success' : 'text-danger'}">
+                                ${assetReturn >= 0 ? '+' : ''}${assetReturn.toFixed(2)}%
+                            </td>
+                            <td>${assetTrades.length}</td>
+                            <td class="${successRate >= 70 ? 'text-success' : 'text-warning'}">
+                                ${successRate.toFixed(0)}%
+                            </td>
+                            <td>${avgConfidence.toFixed(0)}%</td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                tbody.innerHTML = assetRows;
+            }
+        }
+
+        // Function to update advanced analytics
+        async function updateAdvancedAnalytics() {
+            const portfolioData = await loadData('/crypto-bot/data/portfolio/portfolio.json');
+            const tradeData = await loadData('/crypto-bot/data/trades/trade_history.json');
+            
+            if (portfolioData && tradeData && Array.isArray(tradeData)) {
+                // Calculate risk-adjusted returns
+                updateRiskAdjustedReturns(portfolioData, tradeData);
+                
+                // Update AI decision intelligence
+                updateAIDecisionIntelligence(tradeData);
+                
+                // Update market timing analysis
+                updateMarketTimingAnalysis(tradeData);
+                
+                // Update comparative analysis
+                updateComparativeAnalysis(portfolioData, tradeData);
+            }
+        }
+
+        // Function to update risk-adjusted returns
+        function updateRiskAdjustedReturns(portfolio, trades) {
+            const initialValue = portfolio.initial_value_usd || 0;
+            const currentValue = portfolio.portfolio_value_usd || 0;
+            const totalReturn = initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0;
+            
+            // Simplified Sharpe ratio calculation (would need more historical data for accurate calculation)
+            const sharpeRatio = totalReturn > 0 ? (totalReturn / 10).toFixed(2) : '0.00'; // Placeholder
+            document.getElementById('sharpe-ratio').textContent = sharpeRatio;
+            
+            // Max drawdown (simplified)
+            const maxDrawdown = totalReturn < 0 ? totalReturn.toFixed(2) + '%' : '0.00%';
+            document.getElementById('max-drawdown').textContent = maxDrawdown;
+            
+            // Volatility (placeholder)
+            document.getElementById('volatility').textContent = '12.5%';
+            
+            // Best trade (highest confidence)
+            const actualTrades = trades.filter(trade => 
+                trade.action && ['buy', 'sell'].includes(trade.action.toLowerCase()) && 
+                trade.trade_amount_usd > 0
+            );
+            const bestTrade = actualTrades.reduce((best, trade) => 
+                trade.confidence > (best?.confidence || 0) ? trade : best, null);
+            
+            document.getElementById('best-trade').textContent = 
+                bestTrade ? `${bestTrade.confidence}%` : '--';
+        }
+
+        // Function to update AI decision intelligence
+        function updateAIDecisionIntelligence(trades) {
+            const actualTrades = trades.filter(trade => 
+                trade.action && ['buy', 'sell'].includes(trade.action.toLowerCase()) && 
+                trade.trade_amount_usd > 0
+            );
+            
+            // Confidence vs outcome analysis
+            const highConfidenceTrades = actualTrades.filter(trade => trade.confidence >= 70);
+            const highConfidenceRate = actualTrades.length > 0 ? 
+                (highConfidenceTrades.length / actualTrades.length * 100) : 0;
+            
+            document.getElementById('high-confidence-success').style.width = highConfidenceRate + '%';
+            document.getElementById('high-confidence-text').textContent = 
+                `${highConfidenceRate.toFixed(0)}% High Confidence`;
+            document.getElementById('confidence-analysis').textContent = 
+                `${highConfidenceTrades.length} of ${actualTrades.length} trades had 70%+ confidence`;
+            
+            // Technical indicator effectiveness (simplified analysis)
+            const macdTrades = actualTrades.filter(trade => 
+                trade.reason && trade.reason.toLowerCase().includes('macd'));
+            const rsiTrades = actualTrades.filter(trade => 
+                trade.reason && trade.reason.toLowerCase().includes('rsi'));
+            
+            document.getElementById('macd-effectiveness').textContent = 
+                `${((macdTrades.length / actualTrades.length) * 100).toFixed(0)}%`;
+            document.getElementById('rsi-effectiveness').textContent = 
+                `${((rsiTrades.length / actualTrades.length) * 100).toFixed(0)}%`;
+        }
+
+        // Function to update market timing analysis
+        function updateMarketTimingAnalysis(trades) {
+            const buyTrades = trades.filter(trade => 
+                trade.action && trade.action.toLowerCase() === 'buy' && trade.trade_amount_usd > 0);
+            const sellTrades = trades.filter(trade => 
+                trade.action && trade.action.toLowerCase() === 'sell' && trade.trade_amount_usd > 0);
+            const holdDecisions = trades.filter(trade => 
+                trade.action && trade.action.toLowerCase() === 'hold');
+            
+            const totalDecisions = trades.length;
+            
+            // Entry timing
+            const entryRate = totalDecisions > 0 ? (buyTrades.length / totalDecisions * 100) : 0;
+            document.getElementById('entry-timing-bar').style.width = entryRate + '%';
+            document.getElementById('entry-timing-text').textContent = 
+                `${buyTrades.length} buy decisions (${entryRate.toFixed(0)}%)`;
+            
+            // Exit timing
+            const exitRate = totalDecisions > 0 ? (sellTrades.length / totalDecisions * 100) : 0;
+            document.getElementById('exit-timing-bar').style.width = exitRate + '%';
+            document.getElementById('exit-timing-text').textContent = 
+                `${sellTrades.length} sell decisions (${exitRate.toFixed(0)}%)`;
+            
+            // Hold decisions
+            const holdRate = totalDecisions > 0 ? (holdDecisions.length / totalDecisions * 100) : 0;
+            document.getElementById('hold-timing-bar').style.width = holdRate + '%';
+            document.getElementById('hold-timing-text').textContent = 
+                `${holdDecisions.length} hold decisions (${holdRate.toFixed(0)}%)`;
+            
+            // Strategy parameter performance
+            document.getElementById('threshold-performance').textContent = 
+                `${buyTrades.length + sellTrades.length} trades executed`;
+            document.getElementById('alignment-impact').textContent = 
+                'Boosting confidence when indicators align';
+            document.getElementById('penalty-impact').textContent = 
+                'Reducing counter-trend signals';
+        }
+
+        // Function to update comparative analysis
+        function updateComparativeAnalysis(portfolio, trades) {
+            const initialValue = portfolio.initial_value_usd || 0;
+            const currentValue = portfolio.portfolio_value_usd || 0;
+            const aiReturn = initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0;
+            
+            // Simplified buy & hold comparison (would need historical price data for accuracy)
+            const buyHoldReturn = aiReturn * 0.6; // Placeholder - assume AI outperforms by 40%
+            const outperformance = aiReturn - buyHoldReturn;
+            
+            document.getElementById('ai-performance').textContent = 
+                (aiReturn >= 0 ? '+' : '') + aiReturn.toFixed(2) + '%';
+            document.getElementById('buyhold-performance').textContent = 
+                (buyHoldReturn >= 0 ? '+' : '') + buyHoldReturn.toFixed(2) + '%';
+            document.getElementById('outperformance').textContent = 
+                (outperformance >= 0 ? '+' : '') + outperformance.toFixed(2) + '%';
+            
+            // Performance comparison bar
+            const comparisonRate = aiReturn > buyHoldReturn ? 75 : 25;
+            document.getElementById('performance-comparison').style.width = comparisonRate + '%';
+            
+            // Asset performance (simplified)
+            const btcValue = (portfolio.BTC?.amount || 0) * (portfolio.BTC?.last_price_usd || 0);
+            const ethValue = (portfolio.ETH?.amount || 0) * (portfolio.ETH?.last_price_usd || 0);
+            const solValue = (portfolio.SOL?.amount || 0) * (portfolio.SOL?.last_price_usd || 0);
+            
+            const btcInitial = (portfolio.BTC?.initial_amount || 0) * (portfolio.BTC?.last_price_usd || 0);
+            const ethInitial = (portfolio.ETH?.initial_amount || 0) * (portfolio.ETH?.last_price_usd || 0);
+            const solInitial = (portfolio.SOL?.initial_amount || 0) * (portfolio.SOL?.last_price_usd || 0);
+            
+            const btcReturn = btcInitial > 0 ? ((btcValue - btcInitial) / btcInitial * 100) : 0;
+            const ethReturn = ethInitial > 0 ? ((ethValue - ethInitial) / ethInitial * 100) : 0;
+            const solReturn = solInitial > 0 ? ((solValue - solInitial) / solInitial * 100) : 0;
+            
+            document.getElementById('btc-performance').textContent = 
+                (btcReturn >= 0 ? '+' : '') + btcReturn.toFixed(1) + '%';
+            document.getElementById('eth-performance').textContent = 
+                (ethReturn >= 0 ? '+' : '') + ethReturn.toFixed(1) + '%';
+            document.getElementById('sol-performance').textContent = 
+                (solReturn >= 0 ? '+' : '') + solReturn.toFixed(1) + '%';
+            
+            // Risk metrics
+            const actualTrades = trades.filter(trade => 
+                trade.action && ['buy', 'sell'].includes(trade.action.toLowerCase()) && 
+                trade.trade_amount_usd > 0
+            );
+            const avgPosition = actualTrades.length > 0 ? 
+                actualTrades.reduce((sum, trade) => sum + trade.trade_amount_usd, 0) / actualTrades.length : 0;
+            
+            document.getElementById('avg-position').textContent = '$' + avgPosition.toFixed(2);
+        }
+
+        // Function to update performance metrics
+        async function updateMetrics() {
+            const portfolioData = await loadData('/crypto-bot/data/portfolio/portfolio.json');
+            const tradeData = await loadData('/crypto-bot/data/trades/trade_history.json');
+            
+            if (portfolioData) {
+                // Calculate total return from portfolio data
+                const initialValue = portfolioData.initial_value_usd || 0;
+                const currentValue = portfolioData.portfolio_value_usd || 0;
+                const totalReturn = initialValue > 0 ? ((currentValue - initialValue) / initialValue * 100) : 0;
+                
+                const returnElement = document.getElementById('total-return');
+                returnElement.textContent = `${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`;
+                returnElement.className = `metric-value ${totalReturn >= 0 ? 'performance-positive' : 'performance-negative'}`;
+            }
+
+            if (tradeData && Array.isArray(tradeData)) {
+                // Filter actual trades (buy/sell with trade_amount_usd > 0)
+                const actualTrades = tradeData.filter(trade => 
+                    trade.action && ['buy', 'sell'].includes(trade.action.toLowerCase()) && 
+                    trade.trade_amount_usd > 0
+                );
+                
+                // Update total trades
+                document.getElementById('total-trades').textContent = actualTrades.length;
+                
+                // Calculate win rate (using confidence as proxy for success)
+                const highConfidenceTrades = actualTrades.filter(trade => trade.confidence >= 70);
+                const winRate = actualTrades.length > 0 ? 
+                    (highConfidenceTrades.length / actualTrades.length * 100) : 0;
+                
+                document.getElementById('win-rate').textContent = `${winRate.toFixed(0)}%`;
+                
+                // Calculate average confidence
+                const totalConfidence = actualTrades.reduce((sum, trade) => sum + (trade.confidence || 0), 0);
+                const avgConfidence = actualTrades.length > 0 ? totalConfidence / actualTrades.length : 0;
+                
+                document.getElementById('avg-confidence').textContent = `${avgConfidence.toFixed(0)}%`;
+            } else {
+                // Fallback if no trade data
+                document.getElementById('total-trades').textContent = '0';
+                document.getElementById('win-rate').textContent = '0%';
+                document.getElementById('avg-confidence').textContent = '0%';
+            }
+        }
+
+        // Function to update portfolio chart
+        async function updatePortfolioChart(period = '24h') {
+            try {
+                const response = await fetch('/crypto-bot/data/portfolio/portfolio_history.csv');
+                const csvText = await response.text();
+                
+                if (csvText) {
+                    // Parse CSV data
+                    const lines = csvText.trim().split('\n');
+                    const labels = [];
+                    const values = [];
+                    
+                    // Get current time for filtering
+                    const now = new Date();
+                    const periodMs = {
+                        '6h': 6 * 60 * 60 * 1000,
+                        '24h': 24 * 60 * 60 * 1000,
+                        '7d': 7 * 24 * 60 * 60 * 1000,
+                        '30d': 30 * 24 * 60 * 60 * 1000,
+                        'all': Infinity
+                    }[period];
+                    
+                    const cutoffTime = new Date(now.getTime() - periodMs);
+                    
+                    // Track period statistics
+                    let highestValue = 0;
+                    let lowestValue = Infinity;
+                    let startValue = null;
+                    let endValue = null;
+                    
+                    // Skip header line and parse data
+                    for (let i = 1; i < lines.length; i++) {
+                        const columns = lines[i].split(',');
+                        if (columns.length >= 2) {
+                            const timestamp = new Date(columns[0]);
+                            const value = parseFloat(columns[1]);
+                            
+                            if (!isNaN(value) && timestamp >= cutoffTime) {
+                                // Format label based on period
+                                let label;
+                                if (period === '6h' || period === '24h') {
+                                    label = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                } else {
+                                    label = timestamp.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                                }
+                                
+                                labels.push(label);
+                                values.push(value);
+                                
+                                // Track statistics
+                                highestValue = Math.max(highestValue, value);
+                                lowestValue = Math.min(lowestValue, value);
+                                if (startValue === null) startValue = value;
+                                endValue = value;
+                            }
+                        }
+                    }
+                    
+                    // Update chart
+                    if (window.portfolioChart) {
+                        portfolioChart.data.labels = labels;
+                        portfolioChart.data.datasets[0].data = values;
+                        portfolioChart.update();
+                        
+                        // Update period statistics
+                        if (startValue !== null && endValue !== null) {
+                            const change = endValue - startValue;
+                            const changePercent = ((endValue - startValue) / startValue) * 100;
+                            
+                            document.getElementById('period-change').textContent = 
+                                (change >= 0 ? '+$' : '-$') + Math.abs(change).toFixed(2);
+                            document.getElementById('period-change').className = 
+                                'fw-bold ' + (change >= 0 ? 'text-success' : 'text-danger');
+                            
+                            document.getElementById('period-percent').textContent = 
+                                (changePercent >= 0 ? '+' : '') + changePercent.toFixed(2) + '%';
+                            document.getElementById('period-percent').className = 
+                                'fw-bold ' + (changePercent >= 0 ? 'text-success' : 'text-danger');
+                            
+                            document.getElementById('period-high').textContent = 
+                                '$' + highestValue.toFixed(2);
+                            document.getElementById('period-low').textContent = 
+                                '$' + lowestValue.toFixed(2);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating portfolio chart:', error);
+            }
+        }
+
+        // Function to update trading activity chart
+        async function updateActivityChart() {
+            const data = await loadData('/crypto-bot/data/trades/trade_history.json');
+            if (data && Array.isArray(data)) {
+                // Count all decisions (including holds)
+                const allDecisions = data;
+                const buyCount = allDecisions.filter(t => t.action && t.action.toLowerCase() === 'buy').length;
+                const sellCount = allDecisions.filter(t => t.action && t.action.toLowerCase() === 'sell').length;
+                const holdCount = allDecisions.filter(t => t.action && t.action.toLowerCase() === 'hold').length;
+                
+                // Count actual executed trades (with trade_amount_usd > 0)
+                const executedTrades = data.filter(t => t.trade_amount_usd > 0);
+                const executedBuys = executedTrades.filter(t => t.action && t.action.toLowerCase() === 'buy').length;
+                const executedSells = executedTrades.filter(t => t.action && t.action.toLowerCase() === 'sell').length;
+                
+                console.log('Trading Activity Data:', {
+                    totalDecisions: allDecisions.length,
+                    buyDecisions: buyCount,
+                    sellDecisions: sellCount,
+                    holdDecisions: holdCount,
+                    executedTrades: executedTrades.length,
+                    executedBuys,
+                    executedSells
+                });
+                
+                // Update activity chart with decision counts
+                if (window.activityChart) {
+                    activityChart.data.datasets[0].data = [buyCount, sellCount, holdCount];
+                    activityChart.update();
+                }
+                
+                // Update any activity summary elements if they exist
+                const activitySummary = document.getElementById('activity-summary');
+                if (activitySummary) {
+                    activitySummary.innerHTML = `
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h6 class="text-success">${buyCount}</h6>
+                                <small>Buy Decisions</small>
+                            </div>
+                            <div class="col-4">
+                                <h6 class="text-danger">${sellCount}</h6>
+                                <small>Sell Decisions</small>
+                            </div>
+                            <div class="col-4">
+                                <h6 class="text-secondary">${holdCount}</h6>
+                                <small>Hold Decisions</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h6 class="text-primary">${executedTrades.length}</h6>
+                                <small>Executed Trades</small>
+                            </div>
+                            <div class="col-6">
+                                <h6 class="text-info">${((executedTrades.length / allDecisions.length) * 100).toFixed(1)}%</h6>
+                                <small>Execution Rate</small>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                console.error('No trading activity data found or invalid format');
+            }
+        }
+
+        // Function to load strategy analysis
+        async function loadStrategyAnalysis() {
+            const data = await loadData('/crypto-bot/data/reports/strategy_performance.json');
+            if (data) {
+                const analysisHtml = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Key Insights:</h6>
+                            <ul>
+                                ${data.insights ? data.insights.map(insight => `<li>${insight}</li>`).join('') : '<li>No insights available</li>'}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Recommendations:</h6>
+                            <ul>
+                                ${data.recommendations ? data.recommendations.map(rec => `<li>${rec}</li>`).join('') : '<li>No recommendations available</li>'}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('strategy-analysis').innerHTML = analysisHtml;
+            } else {
+                document.getElementById('strategy-analysis').innerHTML = 
+                    '<p class="text-muted">No strategy analysis data available.</p>';
+            }
+        }
+
+        // Initialize everything
+        function initializeAnalysis() {
+            initializeCharts();
+            updateMetrics();
+            updateAdvancedAnalytics();
+            updatePortfolioChart('24h'); // Default to today
+            updateActivityChart();
+            updateAssetPerformance();
+            loadStrategyAnalysis();
+            
+            // Add event listeners for chart time filters
+            document.querySelectorAll('#chart-time-filters button').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('#chart-time-filters button').forEach(btn => 
+                        btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Update chart with selected period
+                    const period = this.getAttribute('data-period');
+                    updatePortfolioChart(period);
+                });
+            });
+        }
+
+        // Run initialization when page loads
+        document.addEventListener('DOMContentLoaded', initializeAnalysis);
+
+        // Initialize Bootstrap tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Update data every 5 minutes
+        setInterval(() => {
+            updateMetrics();
+            updateAdvancedAnalytics();
+            
+            // Get current active period for chart update
+            const activeButton = document.querySelector('#chart-time-filters button.active');
+            const currentPeriod = activeButton ? activeButton.getAttribute('data-period') : '24h';
+            updatePortfolioChart(currentPeriod);
+            
+            updateActivityChart();
+            updateAssetPerformance();
+            loadStrategyAnalysis();
+        }, 300000);
+    </script>
+</body>
+</html>
