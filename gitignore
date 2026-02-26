@@ -1,0 +1,29 @@
+# === SEGURIDAD: NUNCA subir credenciales ===
+.env
+credentials/
+*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Logs
+logs/*.log
+logs/*.csv
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
